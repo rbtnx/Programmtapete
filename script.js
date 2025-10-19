@@ -1,0 +1,359 @@
+class TileCanvas {
+    constructor() {
+        this.canvas = document.getElementById('canvas');
+        this.addTileBtn = document.getElementById('addTileBtn');
+        this.tileCounter = 0;
+        this.draggedTile = null;
+        this.dragOffset = { x: 0, y: 0 };
+        
+        this.init();
+    }
+    
+    init() {
+        this.addTileBtn.addEventListener('click', () => this.addTile());
+        this.setupDragAndDrop();
+    }
+    
+    addTile() {
+        this.tileCounter++;
+        const tile = this.createTileElement();
+        this.canvas.appendChild(tile);
+        
+        // Position the new tile in the first available column
+        this.positionTileInFirstAvailableColumn(tile);
+    }
+    
+    createTileElement() {
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        tile.dataset.tileId = this.tileCounter;
+        
+        tile.innerHTML = `
+            <div class="tile-content">
+                <div class="tile-column titel">
+                    <div class="tile-label">Titel</div>
+                    <textarea class="tile-input" placeholder="Enter title..."></textarea>
+                </div>
+                <div class="tile-column themenfeld">
+                    <div class="tile-label">Themenfeld</div>
+                    <textarea class="tile-input" placeholder="Enter topic..."></textarea>
+                </div>
+                <div class="tile-column zielgruppe">
+                    <div class="tile-label">Zielgruppe</div>
+                    <textarea class="tile-input" placeholder="Enter target group..."></textarea>
+                </div>
+            </div>
+            <button class="close-btn" onclick="tileCanvas.removeTile(this.parentElement)">×</button>
+        `;
+        
+        return tile;
+    }
+    
+    positionTileInFirstAvailableColumn(tile) {
+        const columns = this.getColumnPositions();
+        const tiles = Array.from(this.canvas.children).filter(child => child.classList.contains('tile'));
+        
+        // Find the column with the least tiles
+        let columnCounts = new Array(6).fill(0);
+        tiles.forEach(t => {
+            const col = this.getTileColumn(t);
+            if (col >= 0) columnCounts[col]++;
+        });
+        
+        const targetColumn = columnCounts.indexOf(Math.min(...columnCounts));
+        const columnLeft = columns[targetColumn];
+        const columnWidth = this.getColumnWidth();
+        
+        tile.style.position = 'absolute';
+        tile.style.left = `${columnLeft + 10}px`;
+        tile.style.top = `${this.getNextPositionInColumn(targetColumn)}px`;
+        tile.style.width = `${columnWidth - 20}px`;
+    }
+    
+    getColumnPositions() {
+        const canvasRect = this.canvas.getBoundingClientRect();
+        const columnWidth = canvasRect.width / 6;
+        return Array.from({ length: 6 }, (_, i) => i * columnWidth);
+    }
+    
+    getColumnWidth() {
+        const canvasRect = this.canvas.getBoundingClientRect();
+        return canvasRect.width / 6;
+    }
+    
+    getTileColumn(tile) {
+        const canvasRect = this.canvas.getBoundingClientRect();
+        const tileRect = tile.getBoundingClientRect();
+        const columnWidth = canvasRect.width / 6;
+        const relativeLeft = tileRect.left - canvasRect.left;
+        return Math.floor(relativeLeft / columnWidth);
+    }
+    
+    getNextPositionInColumn(columnIndex) {
+        const tiles = Array.from(this.canvas.children).filter(child => 
+            child.classList.contains('tile') && this.getTileColumn(child) === columnIndex
+        );
+        
+        if (tiles.length === 0) return 20;
+        
+        // Sort tiles by their top position to find the bottommost tile
+        tiles.sort((a, b) => {
+            const aTop = parseInt(a.style.top) || 0;
+            const bTop = parseInt(b.style.top) || 0;
+            return aTop - bTop;
+        });
+        
+        const lastTile = tiles[tiles.length - 1];
+        const lastTileTop = parseInt(lastTile.style.top) || 0;
+        const lastTileHeight = lastTile.offsetHeight;
+        
+        // Snap directly onto the tile above (no gap)
+        return lastTileTop + lastTileHeight;
+    }
+    
+    removeTile(tile) {
+        tile.remove();
+        this.reorganizeTiles();
+    }
+    
+    reorganizeTiles() {
+        const tiles = Array.from(this.canvas.children).filter(child => child.classList.contains('tile'));
+        const columns = this.getColumnPositions();
+        const columnWidth = this.getColumnWidth();
+        
+        // Group tiles by column
+        const tilesByColumn = new Array(6).fill(null).map(() => []);
+        
+        tiles.forEach(tile => {
+            const col = this.getTileColumn(tile);
+            if (col >= 0 && col < 6) {
+                tilesByColumn[col].push(tile);
+            }
+        });
+        
+        // Reposition tiles in each column
+        tilesByColumn.forEach((columnTiles, columnIndex) => {
+            let currentTop = 20;
+            columnTiles.forEach(tile => {
+                tile.style.position = 'absolute';
+                tile.style.left = `${columns[columnIndex] + 10}px`;
+                tile.style.top = `${currentTop}px`;
+                tile.style.width = `${columnWidth - 20}px`;
+                // Snap tiles together (no gap)
+                currentTop += tile.offsetHeight;
+            });
+        });
+    }
+    
+    reorganizeColumn(columnIndex) {
+        if (columnIndex < 0 || columnIndex > 5) return;
+        
+        const tiles = Array.from(this.canvas.children).filter(child => child.classList.contains('tile'));
+        const columns = this.getColumnPositions();
+        const columnWidth = this.getColumnWidth();
+        
+        // Get tiles in the specific column
+        const tilesInColumn = tiles.filter(tile => this.getTileColumn(tile) === columnIndex);
+        
+        // Sort tiles by their current top position
+        tilesInColumn.sort((a, b) => {
+            const aTop = parseInt(a.style.top) || 0;
+            const bTop = parseInt(b.style.top) || 0;
+            return aTop - bTop;
+        });
+        
+        // Reposition tiles in the column
+        let currentTop = 20;
+        tilesInColumn.forEach(tile => {
+            tile.style.position = 'absolute';
+            tile.style.left = `${columns[columnIndex] + 10}px`;
+            tile.style.top = `${currentTop}px`;
+            tile.style.width = `${columnWidth - 20}px`;
+            // Snap tiles together (no gap)
+            currentTop += tile.offsetHeight;
+        });
+    }
+    
+    setupDragAndDrop() {
+        this.canvas.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('tile')) {
+                e.preventDefault();
+                this.startDrag(e.target, e);
+            }
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (this.draggedTile) {
+                e.preventDefault();
+                this.dragMove(e);
+            }
+        });
+        
+        document.addEventListener('mouseup', (e) => {
+            if (this.draggedTile) {
+                e.preventDefault();
+                this.endDrag(e);
+            }
+        });
+    }
+    
+    startDrag(tile, e) {
+        this.draggedTile = tile;
+        tile.classList.add('dragging');
+        
+        const rect = tile.getBoundingClientRect();
+        const canvasRect = this.canvas.getBoundingClientRect();
+        this.dragOffset = {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        };
+        
+        // Store original position
+        this.originalPosition = {
+            left: tile.style.left,
+            top: tile.style.top,
+            column: this.getTileColumn(tile)
+        };
+        
+        // Make tile follow mouse
+        tile.style.position = 'fixed';
+        tile.style.zIndex = '1000';
+        tile.style.pointerEvents = 'none';
+    }
+    
+    dragMove(e) {
+        if (!this.draggedTile) return;
+        
+        const canvasRect = this.canvas.getBoundingClientRect();
+        const columnWidth = canvasRect.width / 6;
+        const mouseX = e.clientX - canvasRect.left;
+        const targetColumn = Math.max(0, Math.min(5, Math.floor(mouseX / columnWidth)));
+        
+        // Update tile position to follow mouse
+        this.draggedTile.style.left = `${e.clientX - this.dragOffset.x}px`;
+        this.draggedTile.style.top = `${e.clientY - this.dragOffset.y}px`;
+        
+        // Highlight the target column
+        this.highlightColumn(targetColumn);
+    }
+    
+    endDrag(e) {
+        if (!this.draggedTile) return;
+        
+        const canvasRect = this.canvas.getBoundingClientRect();
+        const columnWidth = canvasRect.width / 6;
+        const mouseX = e.clientX - canvasRect.left;
+        const targetColumn = Math.max(0, Math.min(5, Math.floor(mouseX / columnWidth)));
+        
+        // Reset tile styles
+        this.draggedTile.classList.remove('dragging');
+        this.draggedTile.style.position = 'absolute';
+        this.draggedTile.style.zIndex = '';
+        this.draggedTile.style.pointerEvents = '';
+        
+        // Position the tile in the target column
+        this.positionTileInColumn(this.draggedTile, targetColumn);
+        this.removeColumnHighlight();
+        
+        // Reorganize affected columns
+        setTimeout(() => {
+            this.reorganizeColumn(this.originalPosition.column);
+            if (this.originalPosition.column !== targetColumn) {
+                this.reorganizeColumn(targetColumn);
+            }
+        }, 50);
+        
+        this.draggedTile = null;
+        this.originalPosition = null;
+    }
+    
+    highlightColumn(columnIndex) {
+        this.removeColumnHighlight();
+        
+        // Ensure column index is within valid range
+        if (columnIndex < 0 || columnIndex > 5) return;
+        
+        const canvasRect = this.canvas.getBoundingClientRect();
+        const columnWidth = canvasRect.width / 6;
+        const columnLeft = columnIndex * columnWidth;
+        
+        const highlight = document.createElement('div');
+        highlight.className = 'drop-zone active';
+        highlight.style.position = 'absolute';
+        highlight.style.left = `${columnLeft}px`;
+        highlight.style.top = '0';
+        highlight.style.width = `${columnWidth}px`;
+        highlight.style.height = '100%';
+        highlight.style.pointerEvents = 'none';
+        highlight.style.zIndex = '100';
+        
+        this.canvas.appendChild(highlight);
+    }
+    
+    removeColumnHighlight() {
+        const highlights = this.canvas.querySelectorAll('.drop-zone');
+        highlights.forEach(highlight => highlight.remove());
+    }
+    
+    positionTileInColumn(tile, columnIndex) {
+        // Ensure column index is within valid range
+        if (columnIndex < 0 || columnIndex > 5) return;
+        
+        const columns = this.getColumnPositions();
+        const columnLeft = columns[columnIndex];
+        const columnWidth = this.getColumnWidth();
+        
+        // Find the best position in the column (snap to existing tiles)
+        const tilesInColumn = Array.from(this.canvas.children).filter(child => 
+            child.classList.contains('tile') && 
+            child !== tile && 
+            this.getTileColumn(child) === columnIndex
+        );
+        
+        let targetTop = 20;
+        
+        if (tilesInColumn.length > 0) {
+            // Sort tiles by top position
+            tilesInColumn.sort((a, b) => {
+                const aTop = parseInt(a.style.top) || 0;
+                const bTop = parseInt(b.style.top) || 0;
+                return aTop - bTop;
+            });
+            
+            // Find the best insertion point
+            for (let i = 0; i < tilesInColumn.length; i++) {
+                const currentTile = tilesInColumn[i];
+                const currentTop = parseInt(currentTile.style.top) || 0;
+                const currentHeight = currentTile.offsetHeight;
+                
+                if (i === 0 && targetTop + tile.offsetHeight < currentTop) {
+                    break; // Insert at the top
+                }
+                
+                if (i === tilesInColumn.length - 1) {
+                    // Insert at the bottom - snap directly onto the last tile
+                    targetTop = currentTop + currentHeight;
+                } else {
+                    const nextTile = tilesInColumn[i + 1];
+                    const nextTop = parseInt(nextTile.style.top) || 0;
+                    
+                    if (targetTop + tile.offsetHeight < nextTop) {
+                        break; // Insert between current and next
+                    }
+                    targetTop = currentTop + currentHeight;
+                }
+            }
+        }
+        
+        tile.style.position = 'absolute';
+        tile.style.left = `${columnLeft + 10}px`;
+        tile.style.top = `${targetTop}px`;
+        tile.style.width = `${columnWidth - 20}px`;
+    }
+}
+
+// Initialize the tile canvas when the page loads
+let tileCanvas;
+document.addEventListener('DOMContentLoaded', () => {
+    tileCanvas = new TileCanvas();
+});
