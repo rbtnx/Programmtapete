@@ -55,7 +55,7 @@ body {
     background-color: #ffffff;
     border: 2px solid #e0e0e0;
     border-radius: 8px;
-    padding: 15px;
+    padding: 5px;
     cursor: move;
     position: absolute;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -82,7 +82,7 @@ body {
 
 .tile-content {
     display: flex;
-    gap: 10px;
+    gap: 2px;
     flex: 1;
     width: 100%;
     min-width: 0;
@@ -97,27 +97,36 @@ body {
 }
 
 .tile-column.titel {
-    flex: 0 0 60%;
+    flex: 3;
     min-width: 0;
     overflow: hidden;
+    background-color: #1e3a8a;
+    border-radius: 6px;
+    padding: 5px;
 }
 
 .tile-column.themenfeld {
-    flex: 0 0 20%;
+    flex: 1;
     min-width: 0;
     overflow: hidden;
+    background-color: #991b1b;
+    border-radius: 6px;
+    padding: 5px;
 }
 
 .tile-column.zielgruppe {
-    flex: 0 0 20%;
+    flex: 1;
     min-width: 0;
     overflow: hidden;
+    background-color: #f7d85f;
+    border-radius: 6px;
+    padding: 5px;
 }
 
 .tile-label {
     font-size: 12px;
     font-weight: bold;
-    color: #666;
+    color: #ffffff;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -127,7 +136,7 @@ body {
     outline: none;
     background: transparent;
     font-size: 14px;
-    color: #333;
+    color: #ffffff;
     resize: none;
     min-height: 20px;
     flex: 1;
@@ -140,9 +149,10 @@ body {
 }
 
 .tile-input:focus {
-    background-color: #f8f9fa;
+    background-color: rgba(255, 255, 255, 0.2);
     border-radius: 4px;
     padding: 4px;
+    color: #ffffff;
 }
 
 .close-btn {

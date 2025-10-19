@@ -176,9 +176,16 @@ class TileCanvas {
     
     setupDragAndDrop() {
         this.canvas.addEventListener('mousedown', (e) => {
-            if (e.target.classList.contains('tile')) {
+            // Find the tile element (either the target itself or its closest parent)
+            const tile = e.target.closest('.tile');
+            if (tile) {
+                // Don't start drag if clicking on input elements
+                if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
+                    return; // Allow normal text editing
+                }
+                
                 e.preventDefault();
-                this.startDrag(e.target, e);
+                this.startDrag(tile, e);
             }
         });
         
