@@ -40,11 +40,30 @@ class TileCanvas {
                 </div>
                 <div class="tile-column zielgruppe">
                     <div class="tile-label">Zielgruppe</div>
-                    <textarea class="tile-input" placeholder="Enter target group..."></textarea>
+                    <div class="ziel-rows">
+                        <div class="ziel-row" data-value="Kinder">Kinder</div>
+                        <div class="ziel-row" data-value="Jugend">Jugend</div>
+                        <div class="ziel-row" data-value="Erwachsene">Erwachsene</div>
+                        <div class="ziel-row" data-value="Altersfreundlich">Altersfreundlich</div>
+                        <div class="ziel-row" data-value="Schulklassen">Schulklassen</div>
+                    </div>
                 </div>
             </div>
             <button class="close-btn" onclick="tileCanvas.removeTile(this.parentElement)">×</button>
         `;
+        
+        // Attach click handlers for zielgruppe rows
+        const zielRows = tile.querySelectorAll('.ziel-row');
+        zielRows.forEach(row => {
+            row.addEventListener('mousedown', (e) => {
+                // prevent tile drag start when interacting with rows
+                e.stopPropagation();
+            });
+            row.addEventListener('click', (e) => {
+                e.stopPropagation();
+                row.classList.toggle('active');
+            });
+        });
         
         return tile;
     }

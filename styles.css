@@ -104,8 +104,8 @@ body {
     border-radius: 2px;
     padding: 5px;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: stretch;
+    justify-content: stretch;
     height: 100%;
 }
 
@@ -123,12 +123,39 @@ body {
 }
 
 .tile-column.zielgruppe {
-    flex: 1;
+    flex: 2;
     min-width: 0;
     overflow: hidden;
-    background-color: #dbbd13;
+    background-color: #374151;
     border-radius: 2px;
-    padding: 5px;
+    padding: 2px;
+}
+
+/* Zielgruppe rows container */
+.ziel-rows {
+    display: grid;
+    grid-template-rows: repeat(5, 1fr);
+    height: 100%;
+    gap: 1px;
+}
+
+.ziel-row {
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    text-align: left;
+    background-color: #dbbd13; /* default yellow */
+    color: #ffffff;
+    font-weight: 600;
+    border: 1px solid rgba(0,0,0,0.1);
+    cursor: pointer;
+    user-select: none;
+}
+
+.ziel-row.active {
+    background-color: #374151;
+    color: #8d8a8ae8; /* light grey */
 }
 
 .tile-label {
