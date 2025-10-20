@@ -113,7 +113,8 @@ class TileCanvas {
             <div class="tile-content">
                 <div class="tile-column titel">
                     <div class="tile-label">Titel</div>
-                    <textarea class="tile-input" placeholder="Titel der Veranstaltung"></textarea>
+                    <div class="tile-input-display" contenteditable="false">Titel der Veranstaltung</div>
+                    <textarea class="tile-input-edit" placeholder="Titel der Veranstaltung" style="display: none;"></textarea>
                 </div>
                 <div class="tile-column themenfeld">
                     <div class="tile-label">Themenfeld</div>
@@ -149,6 +150,35 @@ class TileCanvas {
             this.openThemenfeldPopup(selectEl, (newValue) => {
                 valueEl.textContent = newValue;
             });
+        });
+
+        // Attach interactions for first column (titel)
+        const titelColumn = tile.querySelector('.tile-column.titel');
+        const displayEl = titelColumn.querySelector('.tile-input-display');
+        const editEl = titelColumn.querySelector('.tile-input-edit');
+        
+        // Double-click to enter edit mode
+        displayEl.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            this.enterEditMode(tile, displayEl, editEl);
+        });
+        
+        // Prevent drag when clicking on display element
+        displayEl.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+        });
+        
+        // Handle Enter key to exit edit mode
+        editEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.exitEditMode(tile, displayEl, editEl);
+            }
+        });
+        
+        // Prevent drag when in edit mode
+        editEl.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
         });
 
         // Attach click handlers for zielgruppe rows
@@ -297,11 +327,12 @@ class TileCanvas {
             // Find the tile element (either the target itself or its closest parent)
             const tile = e.target.closest('.tile');
             if (tile) {
-                // Don't start drag if clicking on input elements or close button
+                // Don't start drag if clicking on input elements, close button, or if tile is in edit mode
                 if (e.target.tagName === 'TEXTAREA' || 
                     e.target.tagName === 'INPUT' || 
                     e.target.classList.contains('close-btn') ||
-                    e.target.closest('.close-btn')) {
+                    e.target.closest('.close-btn') ||
+                    tile.dataset.editMode === 'true') {
                     return; // Allow normal interactions
                 }
                 
@@ -406,8 +437,8 @@ class TileCanvas {
             };
             
             // Extract title content
-            const titleTextarea = tile.querySelector('.tile-column.titel textarea');
-            const title = titleTextarea ? titleTextarea.value : '';
+            const titleDisplay = tile.querySelector('.tile-input-display');
+            const title = titleDisplay ? titleDisplay.textContent : '';
             
             // Extract themenfeld selection
             const themenfeldValue = tile.querySelector('.themenfeld-value');
@@ -472,9 +503,9 @@ class TileCanvas {
                     tile.style.width = tileData.position.width || '200px';
                     
                     // Set title content
-                    const titleTextarea = tile.querySelector('.tile-column.titel textarea');
-                    if (titleTextarea && tileData.title) {
-                        titleTextarea.value = tileData.title;
+                    const titleDisplay = tile.querySelector('.tile-input-display');
+                    if (titleDisplay && tileData.title) {
+                        titleDisplay.textContent = tileData.title;
                     }
                     
                     // Set themenfeld selection
@@ -535,6 +566,34 @@ class TileCanvas {
         }
         // Reset file input
         event.target.value = '';
+    }
+    
+    enterEditMode(tile, displayEl, editEl) {
+        // Hide display element and show edit element
+        displayEl.style.display = 'none';
+        editEl.style.display = 'block';
+        
+        // Set the textarea value to the display text
+        editEl.value = displayEl.textContent;
+        
+        // Focus and select the text
+        editEl.focus();
+        editEl.select();
+        
+        // Mark tile as in edit mode
+        tile.dataset.editMode = 'true';
+    }
+    
+    exitEditMode(tile, displayEl, editEl) {
+        // Update display text with edited content
+        displayEl.textContent = editEl.value || 'Titel der Veranstaltung';
+        
+        // Hide edit element and show display element
+        editEl.style.display = 'none';
+        displayEl.style.display = 'block';
+        
+        // Remove edit mode flag
+        tile.dataset.editMode = 'false';
     }
     
     highlightColumn(columnIndex) {
