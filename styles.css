@@ -122,6 +122,73 @@ body {
     align-items: center;
 }
 
+/* Themenfeld select */
+.themenfeld-select {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    background: transparent;
+    color: #ffffff;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 6px 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.themenfeld-caret {
+    opacity: 0.8;
+}
+
+.themenfeld-menu {
+    width: 100%;
+    margin-top: 6px;
+    background: #4a0f0f;
+    border: 1px solid rgba(255,255,255,0.2);
+    display: none;
+}
+
+.themenfeld-menu.open {
+    display: block;
+}
+
+.themenfeld-option {
+    padding: 8px 10px;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.themenfeld-option:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+/* Global popup menu for themenfeld */
+.global-popup-menu {
+    position: fixed;
+    background: #1f2937; /* dark grey */
+    color: #ffffff;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 4px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    z-index: 2000;
+}
+
+.global-popup-list {
+    display: flex;
+    flex-direction: column;
+    min-width: 220px;
+}
+
+.global-popup-item {
+    padding: 10px 12px;
+    cursor: pointer;
+}
+
+.global-popup-item:hover {
+    background: rgba(255,255,255,0.08);
+}
+
 .tile-column.zielgruppe {
     flex: 2;
     min-width: 0;

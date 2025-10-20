@@ -5,6 +5,7 @@ class TileCanvas {
         this.tileCounter = 0;
         this.draggedTile = null;
         this.dragOffset = { x: 0, y: 0 };
+        this.activePopup = null;
         
         this.init();
     }
@@ -12,6 +13,73 @@ class TileCanvas {
     init() {
         this.addTileBtn.addEventListener('click', () => this.addTile());
         this.setupDragAndDrop();
+    }
+    
+    openThemenfeldPopup(anchorEl, onSelect) {
+        // Close any existing popup
+        if (this.activePopup) {
+            this.activePopup.remove();
+            this.activePopup = null;
+        }
+        const options = [
+            'Ich fühle mich wohl',
+            'Themenfeld 2',
+            'Themenfeld 3',
+            'Themenfeld 4',
+            'Themenfeld 5',
+        ];
+        const popup = document.createElement('div');
+        popup.className = 'global-popup-menu';
+        popup.tabIndex = -1;
+        const list = document.createElement('div');
+        list.className = 'global-popup-list';
+        options.forEach(text => {
+            const item = document.createElement('div');
+            item.className = 'global-popup-item';
+            item.textContent = text;
+            item.addEventListener('mousedown', (e) => e.stopPropagation());
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                onSelect(text);
+                this.closeActivePopup();
+            });
+            list.appendChild(item);
+        });
+        popup.appendChild(list);
+        document.body.appendChild(popup);
+        this.activePopup = popup;
+        
+        // Position near anchor
+        const rect = anchorEl.getBoundingClientRect();
+        popup.style.position = 'fixed';
+        popup.style.left = `${rect.left}px`;
+        popup.style.top = `${rect.bottom + 6}px`;
+        
+        const onDocClick = (e) => {
+            if (!popup.contains(e.target)) {
+                this.closeActivePopup();
+                document.removeEventListener('click', onDocClick);
+                document.removeEventListener('keydown', onKey);
+            }
+        };
+        const onKey = (e) => {
+            if (e.key === 'Escape') {
+                this.closeActivePopup();
+                document.removeEventListener('click', onDocClick);
+                document.removeEventListener('keydown', onKey);
+            }
+        };
+        setTimeout(() => {
+            document.addEventListener('click', onDocClick);
+            document.addEventListener('keydown', onKey);
+        }, 0);
+    }
+    
+    closeActivePopup() {
+        if (this.activePopup) {
+            this.activePopup.remove();
+            this.activePopup = null;
+        }
     }
     
     addTile() {
@@ -36,7 +104,10 @@ class TileCanvas {
                 </div>
                 <div class="tile-column themenfeld">
                     <div class="tile-label">Themenfeld</div>
-                    <textarea class="tile-input" placeholder="Enter topic..."></textarea>
+                    <div class="themenfeld-select" tabindex="0">
+                        <span class="themenfeld-value">Ich fühle mich wohl</span>
+                        <span class="themenfeld-caret">▾</span>
+                    </div>
                 </div>
                 <div class="tile-column zielgruppe">
                     <div class="tile-label">Zielgruppe</div>
@@ -52,6 +123,22 @@ class TileCanvas {
             <button class="close-btn" onclick="tileCanvas.removeTile(this.parentElement)">×</button>
         `;
         
+        // Attach interactions for themenfeld popup dropdown
+        const themenfeld = tile.querySelector('.tile-column.themenfeld');
+        const selectEl = themenfeld.querySelector('.themenfeld-select');
+        const valueEl = themenfeld.querySelector('.themenfeld-value');
+
+        // Prevent drag when interacting with dropdown trigger
+        selectEl.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+        });
+        selectEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.openThemenfeldPopup(selectEl, (newValue) => {
+                valueEl.textContent = newValue;
+            });
+        });
+
         // Attach click handlers for zielgruppe rows
         const zielRows = tile.querySelectorAll('.ziel-row');
         zielRows.forEach(row => {
