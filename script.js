@@ -88,7 +88,14 @@ class TileCanvas {
         this.canvas.appendChild(tile);
         
         // Position the new tile in the first available column
-        this.positionTileInFirstAvailableColumn(tile);
+        //this.positionTileInFirstAvailableColumn(tile);
+
+        const columnWidth = this.getColumnWidth();
+
+        tile.style.position = 'absolute';
+        tile.style.left = `calc(${columnWidth}px * 5)`;
+        tile.style.top = '0';
+        tile.style.width = `${columnWidth}px`;
     }
     
     createTileElement() {
@@ -285,9 +292,12 @@ class TileCanvas {
             // Find the tile element (either the target itself or its closest parent)
             const tile = e.target.closest('.tile');
             if (tile) {
-                // Don't start drag if clicking on input elements
-                if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
-                    return; // Allow normal text editing
+                // Don't start drag if clicking on input elements or close button
+                if (e.target.tagName === 'TEXTAREA' || 
+                    e.target.tagName === 'INPUT' || 
+                    e.target.classList.contains('close-btn') ||
+                    e.target.closest('.close-btn')) {
+                    return; // Allow normal interactions
                 }
                 
                 e.preventDefault();
