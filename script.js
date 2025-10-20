@@ -2,6 +2,9 @@ class TileCanvas {
     constructor() {
         this.canvas = document.getElementById('canvas');
         this.addTileBtn = document.getElementById('addTileBtn');
+        this.saveBtn = document.getElementById('saveBtn');
+        this.loadBtn = document.getElementById('loadBtn');
+        this.fileInput = document.getElementById('fileInput');
         this.tileCounter = 0;
         this.draggedTile = null;
         this.dragOffset = { x: 0, y: 0 };
@@ -12,6 +15,9 @@ class TileCanvas {
     
     init() {
         this.addTileBtn.addEventListener('click', () => this.addTile());
+        this.saveBtn.addEventListener('click', () => this.saveToFile());
+        this.loadBtn.addEventListener('click', () => this.fileInput.click());
+        this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
         this.setupDragAndDrop();
     }
     
@@ -112,8 +118,7 @@ class TileCanvas {
                 <div class="tile-column themenfeld">
                     <div class="tile-label">Themenfeld</div>
                     <div class="themenfeld-select" tabindex="0">
-                        <span class="themenfeld-value">Themenfeld</span>
-                        <span class="themenfeld-caret">▾</span>
+                        <span class="themenfeld-value">Klick mich...</span>
                     </div>
                 </div>
                 <div class="tile-column zielgruppe">
@@ -388,6 +393,148 @@ class TileCanvas {
         
         this.draggedTile = null;
         this.originalPosition = null;
+    }
+    
+    serializeTiles() {
+        const tiles = Array.from(this.canvas.children).filter(child => child.classList.contains('tile'));
+        const tilesData = tiles.map(tile => {
+            // Extract position
+            const position = {
+                left: tile.style.left || '0px',
+                top: tile.style.top || '0px',
+                width: tile.style.width || '200px'
+            };
+            
+            // Extract title content
+            const titleTextarea = tile.querySelector('.tile-column.titel textarea');
+            const title = titleTextarea ? titleTextarea.value : '';
+            
+            // Extract themenfeld selection
+            const themenfeldValue = tile.querySelector('.themenfeld-value');
+            const themenfeld = themenfeldValue ? themenfeldValue.textContent : 'Themenfeld';
+            
+            // Extract zielgruppe active rows
+            const activeRows = Array.from(tile.querySelectorAll('.ziel-row.active'))
+                .map(row => row.getAttribute('data-value') || row.textContent);
+            
+            return {
+                id: parseInt(tile.dataset.tileId) || 0,
+                position: position,
+                title: title,
+                themenfeld: themenfeld,
+                zielgruppe: activeRows
+            };
+        });
+        
+        return {
+            tiles: tilesData
+        };
+    }
+    
+    saveToFile() {
+        try {
+            const data = this.serializeTiles();
+            const jsonString = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'programmtapete.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error saving file:', error);
+            alert('Error saving configuration file');
+        }
+    }
+    
+    loadFromJSON(jsonData) {
+        try {
+            // Clear all existing tiles
+            const existingTiles = Array.from(this.canvas.children).filter(child => child.classList.contains('tile'));
+            existingTiles.forEach(tile => tile.remove());
+            
+            // Reset tile counter
+            this.tileCounter = 0;
+            
+            // Load each tile from the data
+            if (jsonData.tiles && Array.isArray(jsonData.tiles)) {
+                jsonData.tiles.forEach(tileData => {
+                    const tile = this.createTileElement();
+                    
+                    // Set position
+                    tile.style.position = 'absolute';
+                    tile.style.left = tileData.position.left || '0px';
+                    tile.style.top = tileData.position.top || '0px';
+                    tile.style.width = tileData.position.width || '200px';
+                    
+                    // Set title content
+                    const titleTextarea = tile.querySelector('.tile-column.titel textarea');
+                    if (titleTextarea && tileData.title) {
+                        titleTextarea.value = tileData.title;
+                    }
+                    
+                    // Set themenfeld selection
+                    const themenfeldValue = tile.querySelector('.themenfeld-value');
+                    if (themenfeldValue && tileData.themenfeld) {
+                        themenfeldValue.textContent = tileData.themenfeld;
+                    }
+                    
+                    // Set zielgruppe active rows
+                    if (tileData.zielgruppe && Array.isArray(tileData.zielgruppe)) {
+                        const zielRows = tile.querySelectorAll('.ziel-row');
+                        zielRows.forEach(row => {
+                            const rowValue = row.getAttribute('data-value') || row.textContent;
+                            if (tileData.zielgruppe.includes(rowValue)) {
+                                row.classList.add('active');
+                            }
+                        });
+                    }
+                    
+                    // Update tile counter
+                    this.tileCounter = Math.max(this.tileCounter, tileData.id || 0);
+                    
+                    this.canvas.appendChild(tile);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading JSON data:', error);
+            alert('Error loading configuration file');
+        }
+    }
+    
+    loadFromFile(file) {
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const jsonData = JSON.parse(e.target.result);
+                this.loadFromJSON(jsonData);
+            } catch (error) {
+                console.error('Error parsing JSON file:', error);
+                alert('Invalid JSON file format');
+            }
+        };
+        reader.onerror = () => {
+            console.error('Error reading file');
+            alert('Error reading file');
+        };
+        reader.readAsText(file);
+    }
+    
+    handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file && file.type === 'application/json') {
+            this.loadFromFile(file);
+        } else {
+            alert('Please select a valid JSON file');
+        }
+        // Reset file input
+        event.target.value = '';
     }
     
     highlightColumn(columnIndex) {
