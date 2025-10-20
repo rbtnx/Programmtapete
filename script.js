@@ -582,6 +582,19 @@ class TileCanvas {
         
         // Mark tile as in edit mode
         tile.dataset.editMode = 'true';
+        
+        // Add click outside listener
+        const outsideClickHandler = (e) => {
+            if (!editEl.contains(e.target)) {
+                this.exitEditMode(tile, displayEl, editEl);
+                document.removeEventListener('click', outsideClickHandler);
+            }
+        };
+        
+        // Add the listener after a short delay to prevent immediate triggering
+        setTimeout(() => {
+            document.addEventListener('click', outsideClickHandler);
+        }, 10);
     }
     
     exitEditMode(tile, displayEl, editEl) {
