@@ -52,9 +52,8 @@ body {
 }
 
 .tile {
-    background-color: #ffffff;
+    background-color: #374151;
     border: 2px solid #e0e0e0;
-    border-radius: 8px;
     padding: 5px;
     cursor: move;
     position: absolute;
@@ -99,10 +98,15 @@ body {
 .tile-column.titel {
     flex: 3;
     min-width: 0;
+    min-height: 10em;
     overflow: hidden;
     background-color: #1e3a8a;
-    border-radius: 6px;
+    border-radius: 2px;
     padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
 }
 
 .tile-column.themenfeld {
@@ -110,16 +114,20 @@ body {
     min-width: 0;
     overflow: hidden;
     background-color: #991b1b;
-    border-radius: 6px;
+    border-radius: 2px;
     padding: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .tile-column.zielgruppe {
     flex: 1;
     min-width: 0;
     overflow: hidden;
-    background-color: #f7d85f;
-    border-radius: 6px;
+    background-color: #dbbd13;
+    border-radius: 2px;
     padding: 5px;
 }
 
@@ -129,6 +137,7 @@ body {
     color: #ffffff;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    display: none;
 }
 
 .tile-input {
@@ -155,10 +164,38 @@ body {
     color: #ffffff;
 }
 
+.tile-column.titel .tile-input {
+    font-size: 18px;
+    text-align: center;
+    font-weight: bold;
+    width: 100%;
+    height: 100%;
+    flex: 1;
+    resize: none;
+    overflow: hidden;
+    line-height: 1.2;
+    box-sizing: border-box;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #ffffff;
+}
+
+.tile-column.themenfeld .tile-input {
+    transform: rotate(-90deg);
+    transform-origin: center;
+    writing-mode: horizontal-tb;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .close-btn {
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
     background-color: #dc3545;
     color: white;
     border: none;
@@ -173,6 +210,7 @@ body {
     justify-content: center;
     opacity: 0;
     transition: opacity 0.3s ease;
+    z-index: 10;
 }
 
 .tile:hover .close-btn {
