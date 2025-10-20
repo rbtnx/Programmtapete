@@ -4,11 +4,14 @@ class TileCanvas {
         this.addTileBtn = document.getElementById('addTileBtn');
         this.saveBtn = document.getElementById('saveBtn');
         this.loadBtn = document.getElementById('loadBtn');
+        this.filterDropdown = document.getElementById('filterDropdown');
+        this.filterBtn = document.getElementById('filterBtn');
         this.fileInput = document.getElementById('fileInput');
         this.tileCounter = 0;
         this.draggedTile = null;
         this.dragOffset = { x: 0, y: 0 };
         this.activePopup = null;
+        this.activeFilter = null;
         
         this.init();
     }
@@ -18,6 +21,7 @@ class TileCanvas {
         this.saveBtn.addEventListener('click', () => this.saveToFile());
         this.loadBtn.addEventListener('click', () => this.fileInput.click());
         this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+        this.filterBtn.addEventListener('click', () => this.applyFilter());
         this.setupDragAndDrop();
     }
     
@@ -607,6 +611,42 @@ class TileCanvas {
         
         // Remove edit mode flag
         tile.dataset.editMode = 'false';
+    }
+    
+    applyFilter() {
+        const selectedValue = this.filterDropdown.value;
+        
+        if (!selectedValue) {
+            this.clearFilter();
+            return;
+        }
+        
+        // Remove previous filter
+        this.clearFilter();
+        
+        // Apply new filter
+        this.activeFilter = selectedValue;
+        const tiles = Array.from(this.canvas.children).filter(child => child.classList.contains('tile'));
+        
+        tiles.forEach(tile => {
+            const activeRows = Array.from(tile.querySelectorAll('.ziel-row.active'));
+            const hasMatchingRow = activeRows.some(row => {
+                const rowValue = row.getAttribute('data-value') || row.textContent;
+                return rowValue === selectedValue;
+            });
+            
+            if (!hasMatchingRow) {
+                tile.style.opacity = '0.1';
+            }
+        });
+    }
+    
+    clearFilter() {
+        this.activeFilter = null;
+        const tiles = Array.from(this.canvas.children).filter(child => child.classList.contains('tile'));
+        tiles.forEach(tile => {
+            tile.style.opacity = '';
+        });
     }
     
     highlightColumn(columnIndex) {
