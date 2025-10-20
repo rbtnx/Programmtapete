@@ -96,12 +96,10 @@ body {
 
 .save-btn:hover {
     background-color: #218838;
-    transform: translateY(-50%) scale(1.05);
 }
 
 .load-btn:hover {
     background-color: #138496;
-    transform: translateY(-50%) scale(1.05);
 }
 
 .filter-dropdown {

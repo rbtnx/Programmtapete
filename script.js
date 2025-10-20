@@ -635,7 +635,7 @@ class TileCanvas {
                 return rowValue === selectedValue;
             });
             
-            if (!hasMatchingRow) {
+            if (hasMatchingRow) {
                 tile.style.opacity = '0.1';
             }
         });
