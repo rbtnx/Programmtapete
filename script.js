@@ -22,7 +22,7 @@ class TileCanvas {
             this.activePopup = null;
         }
         const options = [
-            'Ich fühle mich wohl',
+            'Themenfeld 1',
             'Themenfeld 2',
             'Themenfeld 3',
             'Themenfeld 4',
@@ -100,12 +100,12 @@ class TileCanvas {
             <div class="tile-content">
                 <div class="tile-column titel">
                     <div class="tile-label">Titel</div>
-                    <textarea class="tile-input" placeholder="Enter title..."></textarea>
+                    <textarea class="tile-input" placeholder="Titel der Veranstaltung"></textarea>
                 </div>
                 <div class="tile-column themenfeld">
                     <div class="tile-label">Themenfeld</div>
                     <div class="themenfeld-select" tabindex="0">
-                        <span class="themenfeld-value">Ich fühle mich wohl</span>
+                        <span class="themenfeld-value">Themenfeld</span>
                         <span class="themenfeld-caret">▾</span>
                     </div>
                 </div>

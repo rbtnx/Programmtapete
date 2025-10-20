@@ -107,6 +107,7 @@ body {
     align-items: stretch;
     justify-content: stretch;
     height: 100%;
+    padding: 30px 0;
 }
 
 .tile-column.themenfeld {
