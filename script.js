@@ -95,7 +95,6 @@ class TileCanvas {
     addTile() {
         this.tileCounter++;
         const tile = this.createTileElement();
-        this.canvas.appendChild(tile);
         
         // Position the new tile in the first available column
         //this.positionTileInFirstAvailableColumn(tile);
@@ -106,6 +105,8 @@ class TileCanvas {
         tile.style.left = `calc(${columnWidth}px * 5)`;
         tile.style.top = '0';
         tile.style.width = `${columnWidth}px`;
+
+        this.canvas.appendChild(tile);
     }
     
     createTileElement() {
